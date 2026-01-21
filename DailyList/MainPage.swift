@@ -79,8 +79,8 @@ struct MainPage: View {
                     Button("Schedule Notification") {
                         print("HERE")
                         let content = UNMutableNotificationContent()
-                        content.title = "Feed the cat"
-                        content.subtitle = "It looks hungry"
+                        content.title = "Feed the dog"
+                        content.subtitle = "She looks hungry"
                         content.sound = UNNotificationSound.default
                         
                         // show this notification five seconds from now
@@ -96,7 +96,7 @@ struct MainPage: View {
 //                        content.body = "Just checking the walls"
 
                         var maybe: [UNNotificationAttachment] = []
-                        if let url = URL(string: "https://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/asteroid_blue.png") {
+                        if let url = URL(string: "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/pork_chop_25_25.png") {
                             
                             let pathExtension = url.pathExtension
                             
@@ -168,8 +168,8 @@ struct MainPage: View {
                         print("3")
                         print(maybe)
                         
-                        content.title = "Feed the cat"
-                        content.subtitle = "It looks hungry"
+                        content.title = "Feed the dog"
+                        content.subtitle = "She looks hungry"
                         content.sound = UNNotificationSound.default
 
 //                        // choose a random identifier
