@@ -8,6 +8,30 @@
 import SwiftUI
 import Foundation
 import UserNotifications
+import UIKit
+//import UIImage
+
+
+extension UNNotificationAttachment {
+
+    static func create(identifier: String, image: UIImage, options: [NSObject : AnyObject]?) -> UNNotificationAttachment? {
+        let fileManager = FileManager.default
+        let tmpSubFolderName = ProcessInfo.processInfo.globallyUniqueString
+        let tmpSubFolderURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(tmpSubFolderName, isDirectory: true)
+        do {
+            try fileManager.createDirectory(at: tmpSubFolderURL, withIntermediateDirectories: true, attributes: nil)
+            let imageFileIdentifier = identifier+".png"
+            let fileURL = tmpSubFolderURL.appendingPathComponent(imageFileIdentifier)
+            let imageData = UIImage.pngData(image)
+            try imageData()?.write(to: fileURL)
+            let imageAttachment = try UNNotificationAttachment.init(identifier: imageFileIdentifier, url: fileURL, options: options)
+            return imageAttachment
+        } catch {
+            print("error " + error.localizedDescription)
+        }
+        return nil
+    }
+}
 
 @Observable
 class SharedMovieList {
@@ -58,15 +82,101 @@ struct MainPage: View {
                         content.title = "Feed the cat"
                         content.subtitle = "It looks hungry"
                         content.sound = UNNotificationSound.default
-
+                        
                         // show this notification five seconds from now
-                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
+                        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+                        
+                        
+                        // Source - https://stackoverflow.com/a
+                        // Posted by Ely, modified by community. See post 'Timeline' for change history
+                        // Retrieved 2026-01-20, License - CC BY-SA 4.0
 
-                        // choose a random identifier
-                        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+//                        let content = UNMutableNotificationContent()
+//                        content.title = "This is a test"
+//                        content.body = "Just checking the walls"
 
-                        // add our notification request
-                        UNUserNotificationCenter.current().add(request)
+                        var maybe: [UNNotificationAttachment] = []
+                        if let url = URL(string: "https://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/asteroid_blue.png") {
+                            
+                            let pathExtension = url.pathExtension
+                            
+                            let task = URLSession.shared.downloadTask(with: url) { (result, response, error) in
+                                if let result = result {
+                                    
+                                    let identifier = ProcessInfo.processInfo.globallyUniqueString
+                                    let target = FileManager.default.temporaryDirectory.appendingPathComponent(identifier).appendingPathExtension(pathExtension)
+                                    
+                                    do {
+                                        try FileManager.default.moveItem(at: result, to: target)
+                                        
+                                        let attachment = try UNNotificationAttachment(identifier: identifier, url: target, options: nil)
+                                        content.attachments.append(attachment)
+                                        maybe.append(attachment)
+                                        print("1")
+                                        print(maybe)
+                                        print(content.attachments.count)
+                                        print(content.attachments)
+                                        
+                                        let notification = UNNotificationRequest(identifier: Date().description, content: content, trigger: trigger)
+                                        UNUserNotificationCenter.current().add(notification, withCompletionHandler: { (error) in
+                                            if let error = error {
+                                                print(error.localizedDescription)
+                                            }
+                                        })
+                                    }
+                                    catch {
+                                        print(error.localizedDescription)
+                                    }
+                                }
+                            }
+                            task.resume()
+                        }
+                        if let url = URL(string: "https://commondatastorage.googleapis.com/codeskulptor-assets/lathrop/asteroid_blend.png") {
+                            
+                            let pathExtension = url.pathExtension
+                            
+                            let task = URLSession.shared.downloadTask(with: url) { (result, response, error) in
+                                if let result = result {
+                                    
+                                    let identifier = ProcessInfo.processInfo.globallyUniqueString
+                                    let target = FileManager.default.temporaryDirectory.appendingPathComponent(identifier).appendingPathExtension(pathExtension)
+                                    
+                                    do {
+                                        try FileManager.default.moveItem(at: result, to: target)
+                                        
+                                        let attachment = try UNNotificationAttachment(identifier: identifier, url: target, options: nil)
+                                        maybe.append(attachment)
+                                        content.attachments = maybe
+//                                        content.attachments.append(attachment)
+                                        print("2")
+                                        print(maybe)
+                                        
+//                                        let notification = UNNotificationRequest(identifier: Date().description, content: content, trigger: trigger)
+//                                        UNUserNotificationCenter.current().add(notification, withCompletionHandler: { (error) in
+//                                            if let error = error {
+//                                                print(error.localizedDescription)
+//                                            }
+//                                        })
+                                    }
+                                    catch {
+                                        print(error.localizedDescription)
+                                    }
+                                }
+                            }
+                            task.resume()
+                        }
+                        print("3")
+                        print(maybe)
+                        
+                        content.title = "Feed the cat"
+                        content.subtitle = "It looks hungry"
+                        content.sound = UNNotificationSound.default
+
+//                        // choose a random identifier
+//                        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+//
+//                        // add our notification request
+//                        UNUserNotificationCenter.current().add(request)
                         print("HERE")
                     }
                 }
