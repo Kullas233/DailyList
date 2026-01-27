@@ -7,6 +7,31 @@
 
 import SwiftUI
 import Foundation
+import UserNotifications
+import UIKit
+//import UIImage
+
+
+extension UNNotificationAttachment {
+
+    static func create(identifier: String, image: UIImage, options: [NSObject : AnyObject]?) -> UNNotificationAttachment? {
+        let fileManager = FileManager.default
+        let tmpSubFolderName = ProcessInfo.processInfo.globallyUniqueString
+        let tmpSubFolderURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(tmpSubFolderName, isDirectory: true)
+        do {
+            try fileManager.createDirectory(at: tmpSubFolderURL, withIntermediateDirectories: true, attributes: nil)
+            let imageFileIdentifier = identifier+".png"
+            let fileURL = tmpSubFolderURL.appendingPathComponent(imageFileIdentifier)
+            let imageData = UIImage.pngData(image)
+            try imageData()?.write(to: fileURL)
+            let imageAttachment = try UNNotificationAttachment.init(identifier: imageFileIdentifier, url: fileURL, options: options)
+            return imageAttachment
+        } catch {
+            print("error " + error.localizedDescription)
+        }
+        return nil
+    }
+}
 
 @Observable
 class SharedMovieList {
@@ -17,81 +42,199 @@ struct MainPage: View {
     @State private var categories: [String] = ["All"] // List of items
     @State private var sharedMovies = SharedMovieList()
     @State private var tr: Bool = false
+    @State private var selectedHour: Int = 12
+    @State private var selectedMinute: Int = 30
     
     var body: some View {
         NavigationStack {
             VStack(alignment: .center) {
-                Text("Movie Lists")
+                Text("Daily Lists")
                     .font(.custom("Helvetica-Bold", size: 35)) // Apply font directly
             }
             .task {
-                await loadMovieList()
+                await requestPushPermission()
+                listRepeatingNotifications()
             }
             
-            VStack {
-                // List of items with swipe-to-delete functionality
-                List {
-                    ForEach(categories, id: \.self) { category in
-                        Toggle("Enable Feature X", isOn: $tr)
-//                                    .toggleStyle(.checkbox) // Uses the native macOS checkbox style
-                                    .padding()
+            GeometryReader { geometry in
+                VStack{
+                    VStack {
+                        HStack {
+                            Text("Hour")
+                                .font(.headline)
+                            
+                            Divider()
+                                .padding(EdgeInsets(top: 0, leading: geometry.size.width/6, bottom: 0, trailing: geometry.size.width/6))
+                                .frame(maxHeight: geometry.size.height/16)
+                            
+                            Text("Minute")
+                                .font(.headline)
+                        }
                         
-//                        NavigationLink(destination: ContentView()) {
-//                            Text(category)
-//
-//                        }
+                        HStack {
+                                Picker("Select a value", selection: $selectedHour) {
+                                    ForEach(0...23, id: \.self) { number in
+                                        Text("\(number)").tag(number)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxHeight: geometry.size.height/5)
+                            
+                                
+                                
+                                Picker("Select a value", selection: $selectedMinute) {
+                                    ForEach(0...59, id: \.self) { number in
+                                        Text("\(number)").tag(number)
+                                    }
+                                }
+                                .pickerStyle(WheelPickerStyle())
+                                .frame(maxHeight: geometry.size.height/5)
+                            
+                        }
+                        
+                        Button("Schedule Notification") {
+                            print("HERE")
+                            let content = UNMutableNotificationContent()
+                            content.title = "Feed the dog"
+                            content.subtitle = "She looks hungry"
+                            content.sound = UNNotificationSound.default
+                            
+                            // show this notification five seconds from now
+                            // let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+                            
+                            var dateComponents = DateComponents()
+                            dateComponents.hour = selectedHour
+                            dateComponents.minute = selectedMinute
+                            // repeats: true makes it a daily notification
+                            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+                            
+                            var maybe: [UNNotificationAttachment] = []
+                            if let url = URL(string: "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/pork_chop_25_25.png") {
+                                
+                                let pathExtension = url.pathExtension
+                                
+                                let task = URLSession.shared.downloadTask(with: url) { (result, response, error) in
+                                    if let result = result {
+                                        
+                                        let identifier = ProcessInfo.processInfo.globallyUniqueString
+                                        let target = FileManager.default.temporaryDirectory.appendingPathComponent(identifier).appendingPathExtension(pathExtension)
+                                        
+                                        do {
+                                            try FileManager.default.moveItem(at: result, to: target)
+                                            
+                                            let attachment = try UNNotificationAttachment(identifier: identifier, url: target, options: nil)
+                                            content.attachments.append(attachment)
+                                            maybe.append(attachment)
+                                            print("1")
+                                            print(maybe)
+                                            print(content.attachments.count)
+                                            print(content.attachments)
+                                            
+                                            let notification = UNNotificationRequest(identifier: Date().description, content: content, trigger: trigger)
+                                            UNUserNotificationCenter.current().add(notification, withCompletionHandler: { (error) in
+                                                if let error = error {
+                                                    print(error.localizedDescription)
+                                                }
+                                            })
+                                        }
+                                        catch {
+                                            print(error.localizedDescription)
+                                        }
+                                    }
+                                }
+                                task.resume()
+                            }
+                            if let url = URL(string: "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/person.png") {
+                                
+                                let pathExtension = url.pathExtension
+                                
+                                let task = URLSession.shared.downloadTask(with: url) { (result, response, error) in
+                                    if let result = result {
+                                        
+                                        let identifier = ProcessInfo.processInfo.globallyUniqueString
+                                        let target = FileManager.default.temporaryDirectory.appendingPathComponent(identifier).appendingPathExtension(pathExtension)
+                                        
+                                        do {
+                                            try FileManager.default.moveItem(at: result, to: target)
+                                            
+                                            let attachment = try UNNotificationAttachment(identifier: identifier, url: target, options: nil)
+                                            maybe.append(attachment)
+                                            content.attachments = maybe
+                                            print("2")
+                                        }
+                                        catch {
+                                            print(error.localizedDescription)
+                                        }
+                                    }
+                                }
+                                task.resume()
+                            }
+                            print("3")
+                            
+                            content.title = "Feed the dog"
+                            content.subtitle = "She looks hungry"
+                            content.sound = UNNotificationSound.default
+                        }
+                    }
+                    VStack {
+                        // List of items with swipe-to-delete functionality
+                        List {
+                            ForEach(categories, id: \.self) { category in
+                                Toggle("Enable Feature X", isOn: $tr)
+                                    .padding()
+                            }
+                            Button("Clear Notifications") {
+                                clearAllPendingLocalNotifications()
+                            }
+                        }
                     }
                 }
-                // Add "+" button to start adding a new item
-//                NavigationLink(destination: AddMediaPage(sharedMovies:sharedMovies)) {
-//                    HStack {
-//                        Image(systemName: "plus")
-//                        Text("Add Item")
-//                    }
-//                    .font(.title2)
-//                }
-//                .buttonStyle(.bordered)
-//                .padding()
             }
         }
         .frame(minWidth: 400, minHeight: 300) // Default size for macOS
-    
     }
     
-    private func loadMovieList() async {
-        let _ = print("LOSD")
-//        sharedMovies.allMovies = []
-//        
-//        let file = "myMovieList.txt"
-//        if let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-//
-//            let fileURL = dir.appendingPathComponent(file)
-//            
-////            do {
-////                try "".write(to: fileURL, atomically: false, encoding: .utf8)
-////            }
-////            catch { print("warning: file write failed!") }
-//
-//            //reading
-//            do {
-//                let text = try String(contentsOf: fileURL, encoding: .utf8)
-//                let allMoviesFromFile = text.components(separatedBy: "\n")
-//                
-//                for movieFromFile in allMoviesFromFile {
-//                    if(movieFromFile == "") {
-//                        continue
-//                    }
-//                    
-//                    let movieFromFile = movieFromFile.components(separatedBy: "*$*@*")
-//                    print(movieFromFile)
-//                    
-//                    let newMovie = ""
-////                    let newMovie = Movie()
-//                    sharedMovies.allMovies.append(newMovie)
-//                }
-//            }
-//            catch { print("warning: file read failed!") }
-//        }
+    func clearAllPendingLocalNotifications() {
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        print("All pending local notifications removed.")
+    }
+    
+    func listRepeatingNotifications() {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            print("--- Repeating Notifications ---")
+            for request in requests {
+                if let trigger = request.trigger, trigger.repeats {
+                    print("Identifier: \(request.identifier)")
+                    
+                    if let calendarTrigger = trigger as? UNCalendarNotificationTrigger {
+                        let dateComponents = calendarTrigger.dateComponents
+                        print("  Type: Calendar (Repeats on: \(dateComponents))")
+                    } else if let timeIntervalTrigger = trigger as? UNTimeIntervalNotificationTrigger {
+                        print("  Type: Time Interval (Repeats every: \(timeIntervalTrigger.timeInterval) seconds)")
+                    } else {
+                        print("  Type: Repeating but not Calendar or TimeInterval (e.g., location)")
+                    }
+                }
+            }
+            print("-----------------------------")
+        }
+    }
+    
+    func requestPushPermission() async {
+        // Request Permission for Push Notifications
+        Task {
+            do {
+                let success = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
+
+                if success {
+                    print("All set!")
+                } else {
+                    print("User denied permissions")
+                }
+            } catch {
+                print(error.localizedDescription)
+            }
+        }
     }
 }
 
