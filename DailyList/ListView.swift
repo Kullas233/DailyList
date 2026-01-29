@@ -95,90 +95,48 @@ struct ListView: View {
                             content.subtitle = "She looks hungry"
                             content.sound = UNNotificationSound.default
                             
-                            // show this notification five seconds from now
-                            // let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-                            
                             var dateComponents = DateComponents()
                             dateComponents.hour = selectedHour
                             dateComponents.minute = selectedMinute
+                            
                             // repeats: true makes it a daily notification
                             let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
                             
-                            var maybe: [UNNotificationAttachment] = []
-                            if let url = URL(string: "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/pork_chop_25_25.png") {
-                                
-                                let pathExtension = url.pathExtension
-                                
-                                let task = URLSession.shared.downloadTask(with: url) { (result, response, error) in
-                                    if let result = result {
-                                        
-                                        let identifier = ProcessInfo.processInfo.globallyUniqueString
-                                        let target = FileManager.default.temporaryDirectory.appendingPathComponent(identifier).appendingPathExtension(pathExtension)
-                                        
-                                        do {
-                                            try FileManager.default.moveItem(at: result, to: target)
-                                            
-                                            let attachment = try UNNotificationAttachment(identifier: identifier, url: target, options: nil)
-                                            content.attachments.append(attachment)
-                                            maybe.append(attachment)
-                                            print("1")
-                                            print(maybe)
-                                            print(content.attachments.count)
-                                            print(content.attachments)
-                                            
-                                            let notification = UNNotificationRequest(identifier: Date().description, content: content, trigger: trigger)
-                                            UNUserNotificationCenter.current().add(notification, withCompletionHandler: { (error) in
-                                                if let error = error {
-                                                    print(error.localizedDescription)
-                                                }
-                                            })
-                                        }
-                                        catch {
-                                            print(error.localizedDescription)
-                                        }
-                                    }
-                                }
-                                task.resume()
+                            var image = UIImage()
+                            if red {
+                                image = UIImage(named: "red")!
                             }
-                            if let url = URL(string: "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/person.png") {
-                                
-                                let pathExtension = url.pathExtension
-                                
-                                let task = URLSession.shared.downloadTask(with: url) { (result, response, error) in
-                                    if let result = result {
-                                        
-                                        let identifier = ProcessInfo.processInfo.globallyUniqueString
-                                        let target = FileManager.default.temporaryDirectory.appendingPathComponent(identifier).appendingPathExtension(pathExtension)
-                                        
-                                        do {
-                                            try FileManager.default.moveItem(at: result, to: target)
-                                            
-                                            let attachment = try UNNotificationAttachment(identifier: identifier, url: target, options: nil)
-                                            maybe.append(attachment)
-                                            content.attachments = maybe
-                                            print("2")
-                                        }
-                                        catch {
-                                            print(error.localizedDescription)
-                                        }
-                                    }
-                                }
-                                task.resume()
+                            else if yellow {
+                                image = UIImage(named: "yellow")!
                             }
-                            print("3")
+                            else if green {
+                                image = UIImage(named: "green")!
+                            }
+                            else
+                            {
+                                print("NO IMAGE")
+                            }
+                            content.attachments = createImageAttachment(image: image)
+                            
+                            let notification = UNNotificationRequest(identifier: Date().description, content: content, trigger: trigger)
+                            UNUserNotificationCenter.current().add(notification, withCompletionHandler: { (error) in
+                                if let error = error {
+                                    print(error.localizedDescription)
+                                }
+                            })
                             
 //                            USING URL
 //                            if let url = URL(string: "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/person.png") {
 //                                let pathExtension = url.pathExtension
 //                                let task = URLSession.shared.downloadTask(with: url) { (result, response, error) in
 //                                    if let result = result {
-//                                        
+//
 //                                        let identifier = ProcessInfo.processInfo.globallyUniqueString
 //                                        let target = FileManager.default.temporaryDirectory.appendingPathComponent(identifier).appendingPathExtension(pathExtension)
-//                                        
+//
 //                                        do {
 //                                            try FileManager.default.moveItem(at: result, to: target)
-//                                            
+//
 //                                            let attachment = try UNNotificationAttachment(identifier: identifier, url: target, options: nil)
 //                                            maybe.append(attachment)
 //                                            content.attachments = maybe
