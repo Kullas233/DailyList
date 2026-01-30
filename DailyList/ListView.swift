@@ -9,37 +9,15 @@ import SwiftUI
 import Foundation
 import UserNotifications
 import UIKit
-//import UIImage
-
-
-extension UNNotificationAttachment {
-
-    static func create(identifier: String, image: UIImage, options: [NSObject : AnyObject]?) -> UNNotificationAttachment? {
-        let fileManager = FileManager.default
-        let tmpSubFolderName = ProcessInfo.processInfo.globallyUniqueString
-        let tmpSubFolderURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(tmpSubFolderName, isDirectory: true)
-        do {
-            try fileManager.createDirectory(at: tmpSubFolderURL, withIntermediateDirectories: true, attributes: nil)
-            let imageFileIdentifier = identifier+".png"
-            let fileURL = tmpSubFolderURL.appendingPathComponent(imageFileIdentifier)
-            let imageData = UIImage.pngData(image)
-            try imageData()?.write(to: fileURL)
-            let imageAttachment = try UNNotificationAttachment.init(identifier: imageFileIdentifier, url: fileURL, options: options)
-            return imageAttachment
-        } catch {
-            print("error " + error.localizedDescription)
-        }
-        return nil
-    }
-}
 
 struct ListView: View {
-    @State private var categories: [String] = ["All"] // List of items
     @State private var red: Bool = false
     @State private var yellow: Bool = false
     @State private var green: Bool = false
     @State private var selectedHour: Int = 12
     @State private var selectedMinute: Int = 30
+    @State private var reminderTitle: String = ""
+    @State private var reminderBody: String = ""
     
     var body: some View {
         NavigationStack {
@@ -91,8 +69,8 @@ struct ListView: View {
                         Button("Schedule Notification") {
                             print("HERE")
                             let content = UNMutableNotificationContent()
-                            content.title = "Feed the dog"
-                            content.subtitle = "She looks hungry"
+                            content.title = reminderTitle
+                            content.subtitle = reminderBody
                             content.sound = UNNotificationSound.default
                             
                             var dateComponents = DateComponents()
@@ -125,6 +103,9 @@ struct ListView: View {
                                 }
                             })
                             
+                            reminderTitle = ""
+                            reminderBody = ""
+                            
 //                            USING URL
 //                            if let url = URL(string: "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/person.png") {
 //                                let pathExtension = url.pathExtension
@@ -149,11 +130,15 @@ struct ListView: View {
 //                                }
 //                                task.resume()
 //                            }
-                            
-                            content.title = "Feed the dog"
-                            content.subtitle = "She looks hungry"
-                            content.sound = UNNotificationSound.default
                         }
+                    }
+                    VStack {
+                        TextField("Enter Title", text: $reminderTitle)
+                            .textFieldStyle(.roundedBorder)
+                            .padding(EdgeInsets(top: 0, leading: geometry.size.width/16, bottom: 0, trailing: geometry.size.width/16))
+                        TextField("Enter Body", text: $reminderBody)
+                            .textFieldStyle(.roundedBorder)
+                            .padding(EdgeInsets(top: 0, leading: geometry.size.width/16, bottom: 0, trailing: geometry.size.width/16))
                     }
                     VStack {
                         let onRed = Binding<Bool>(get: { self.red }, set: { self.red = $0; self.yellow = false; self.green = false })
@@ -161,61 +146,22 @@ struct ListView: View {
                         let onGreen = Binding<Bool>(get: { self.green }, set: { self.red = false; self.yellow = false; self.green = $0 })
                         Toggle("Enable Feature Red", isOn: onRed)
                             .padding()
+                            .padding(EdgeInsets(top: 0, leading: 0, bottom: -geometry.size.width/32, trailing: 0))
                         Toggle("Enable Feature Yellow", isOn: onYellow)
                             .padding()
+                            .padding(EdgeInsets(top: -geometry.size.width/32, leading: 0, bottom: -geometry.size.width/32, trailing: 0))
                         Toggle("Enable Feature Green", isOn: onGreen)
                             .padding()
-                        Button("Clear Notifications") {
-                            clearAllPendingLocalNotifications()
-                        }
+                            .padding(EdgeInsets(top: -geometry.size.width/32, leading: 0, bottom: 0, trailing: 0))
+                    }
+                    Spacer()
+                    Button("Clear Notifications") {
+                        clearAllPendingLocalNotifications()
                     }
                 }
             }
         }
         .frame(minWidth: 400, minHeight: 300) // Default size for macOS
-    }
-    
-    func clearAllPendingLocalNotifications() {
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        print("All pending local notifications removed.")
-    }
-    
-    func listRepeatingNotifications() {
-        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            print("--- Repeating Notifications ---")
-            for request in requests {
-                if let trigger = request.trigger, trigger.repeats {
-                    print("Identifier: \(request.identifier)")
-                    
-                    if let calendarTrigger = trigger as? UNCalendarNotificationTrigger {
-                        let dateComponents = calendarTrigger.dateComponents
-                        print("  Type: Calendar (Repeats on: \(dateComponents))")
-                    } else if let timeIntervalTrigger = trigger as? UNTimeIntervalNotificationTrigger {
-                        print("  Type: Time Interval (Repeats every: \(timeIntervalTrigger.timeInterval) seconds)")
-                    } else {
-                        print("  Type: Repeating but not Calendar or TimeInterval (e.g., location)")
-                    }
-                }
-            }
-            print("-----------------------------")
-        }
-    }
-    
-    func requestPushPermission() async {
-        // Request Permission for Push Notifications
-        Task {
-            do {
-                let success = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
-
-                if success {
-                    print("All set!")
-                } else {
-                    print("User denied permissions")
-                }
-            } catch {
-                print(error.localizedDescription)
-            }
-        }
     }
 }
 

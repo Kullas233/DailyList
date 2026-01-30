@@ -2,7 +2,7 @@ import SwiftUI
 import Foundation
 
 struct MainPage: View {
-    @State private var categories: [String] = ["All", "Movies", "TV Shows"] // List of items
+    @State private var categories: [String] = ["Reminders"] // List of items
     
     var body: some View {
         NavigationStack {
@@ -24,15 +24,15 @@ struct MainPage: View {
                     }
                 }
                 // Add "+" button to start adding a new item
-//                NavigationLink(destination: AddMediaPage(sharedMovies:sharedMovies)) {
-//                    HStack {
-//                        Image(systemName: "plus")
-//                        Text("Add Item")
-//                    }
-//                    .font(.title2)
-//                }
-//                .buttonStyle(.bordered)
-//                .padding()
+                NavigationLink(destination: AddListPage()) {
+                    HStack {
+                        Image(systemName: "plus")
+                        Text("Add List")
+                    }
+                    .font(.title2)
+                }
+                .buttonStyle(.bordered)
+                .padding()
             }
         }
         .frame(minWidth: 400, minHeight: 300) // Default size for macOS
