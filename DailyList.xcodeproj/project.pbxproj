@@ -10,9 +10,33 @@
 		A36D5A9B2F1D7D9900529D59 /* DailyList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		A3BE03F52F2C6B68008F9976 /* Exceptions for "DailyList" folder in "DailyList" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				TODO.txt,
+			);
+			target = A36D5A9A2F1D7D9900529D59 /* DailyList */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		A3BE03F62F2C6B68008F9976 /* Exceptions for "DailyList" folder in "Compile Sources" phase from "DailyList" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = A36D5A972F1D7D9900529D59 /* Sources */;
+			membershipExceptions = (
+				TODO.txt,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A36D5A9D2F1D7D9900529D59 /* DailyList */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				A3BE03F52F2C6B68008F9976 /* Exceptions for "DailyList" folder in "DailyList" target */,
+				A3BE03F62F2C6B68008F9976 /* Exceptions for "DailyList" folder in "Compile Sources" phase from "DailyList" target */,
+			);
 			path = DailyList;
 			sourceTree = "<group>";
 		};

@@ -7,6 +7,26 @@
 
 import UIKit
 
+extension UNNotificationAttachment {
+    static func create(identifier: String, image: UIImage, options: [NSObject : AnyObject]?) -> UNNotificationAttachment? {
+        let fileManager = FileManager.default
+        let tmpSubFolderName = ProcessInfo.processInfo.globallyUniqueString
+        let tmpSubFolderURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(tmpSubFolderName, isDirectory: true)
+        do {
+            try fileManager.createDirectory(at: tmpSubFolderURL, withIntermediateDirectories: true, attributes: nil)
+            let imageFileIdentifier = identifier+".png"
+            let fileURL = tmpSubFolderURL.appendingPathComponent(imageFileIdentifier)
+            let imageData = UIImage.pngData(image)
+            try imageData()?.write(to: fileURL)
+            let imageAttachment = try UNNotificationAttachment.init(identifier: imageFileIdentifier, url: fileURL, options: options)
+            return imageAttachment
+        } catch {
+            print("error " + error.localizedDescription)
+        }
+        return nil
+    }
+}
+
 extension UIImage {
     func createLocalURL() -> URL? {
         guard let imageName = self.accessibilityIdentifier else {
@@ -39,4 +59,47 @@ func createImageAttachment(image: UIImage?) -> [UNNotificationAttachment] {
     }
 
     return notificationAttachment
+}
+
+func clearAllPendingLocalNotifications() {
+    UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+    print("All pending local notifications removed.")
+}
+
+func listRepeatingNotifications() {
+    UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+        print("--- Repeating Notifications ---")
+        for request in requests {
+            if let trigger = request.trigger, trigger.repeats {
+                print("Identifier: \(request.identifier)")
+                
+                if let calendarTrigger = trigger as? UNCalendarNotificationTrigger {
+                    let dateComponents = calendarTrigger.dateComponents
+                    print("  Type: Calendar (Repeats on: \(dateComponents))")
+                } else if let timeIntervalTrigger = trigger as? UNTimeIntervalNotificationTrigger {
+                    print("  Type: Time Interval (Repeats every: \(timeIntervalTrigger.timeInterval) seconds)")
+                } else {
+                    print("  Type: Repeating but not Calendar or TimeInterval (e.g., location)")
+                }
+            }
+        }
+        print("-----------------------------")
+    }
+}
+
+func requestPushPermission() async {
+    // Request Permission for Push Notifications
+    Task {
+        do {
+            let success = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound])
+
+            if success {
+                print("All set!")
+            } else {
+                print("User denied permissions")
+            }
+        } catch {
+            print(error.localizedDescription)
+        }
+    }
 }
