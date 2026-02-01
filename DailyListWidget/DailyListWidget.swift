@@ -8,6 +8,7 @@
 import WidgetKit
 import SwiftUI
 import UIKit
+import AppIntents
 
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
@@ -101,20 +102,54 @@ struct DailyListView: View {
 
 //            Text("Favorite Emoji:")
 //            Text(entry.configuration.favoriteEmoji)
-            HStack {
-                Image("red")
-                    .resizable() // Makes the image resizable
-                    .aspectRatio(contentMode: .fit) // Maintains aspect ratio
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                Image("yellow")
-                    .resizable() // Makes the image resizable
-                    .aspectRatio(contentMode: .fit) // Maintains aspect ratio
-//                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                Image("green")
-                    .resizable() // Makes the image resizable
-                    .aspectRatio(contentMode: .fit) // Maintains aspect ratio
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            VStack {
+                HStack {
+                    Image("red")
+                        .resizable() // Makes the image resizable
+                        .aspectRatio(contentMode: .fit) // Maintains aspect ratio
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    Image("yellow")
+                        .resizable() // Makes the image resizable
+                        .aspectRatio(contentMode: .fit) // Maintains aspect ratio
+                    //                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    Image("green")
+                        .resizable() // Makes the image resizable
+                        .aspectRatio(contentMode: .fit) // Maintains aspect ratio
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+                HStack {
+                    Button(intent: Delete()) {
+                        Text("Delete")
+                    }
+                    .padding()
+                    Button(intent: Next()) {
+                        Text("Next")
+                    }
+                    .padding()
+                }
             }
+        }
+    }
+    
+    struct Next: AppIntent {
+        
+        static var title: LocalizedStringResource = "Next"
+//        static var description = IntentDescription("All heroes get instant 100% health.")
+        
+        func perform() async throws -> some IntentResult {
+            print("Next")
+            return .result()
+        }
+    }
+    
+    struct Delete: AppIntent {
+        
+        static var title: LocalizedStringResource = "Delete"
+//        static var description = IntentDescription("All heroes get instant 100% health.")
+        
+        func perform() async throws -> some IntentResult {
+            print("Delete")
+            return .result()
         }
     }
 }

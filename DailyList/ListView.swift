@@ -28,6 +28,7 @@ struct ListView: View {
             .task {
                 await requestPushPermission()
                 listRepeatingNotifications()
+                listAllPendingNotifications()
             }
             
             GeometryReader { geometry in
