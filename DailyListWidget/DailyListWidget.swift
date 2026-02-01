@@ -109,7 +109,7 @@ struct DailyListView: View {
                 Image("yellow")
                     .resizable() // Makes the image resizable
                     .aspectRatio(contentMode: .fit) // Maintains aspect ratio
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+//                    .clipShape(RoundedRectangle(cornerRadius: 10))
                 Image("green")
                     .resizable() // Makes the image resizable
                     .aspectRatio(contentMode: .fit) // Maintains aspect ratio
