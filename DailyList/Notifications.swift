@@ -116,6 +116,20 @@ func listAllPendingNotifications() {
     }
 }
 
+func fetchPendingNotificationRequests(completion: @escaping ([UNNotificationRequest]) -> Void) {
+    let center = UNUserNotificationCenter.current()
+    center.getPendingNotificationRequests { requests in
+        // Call the passed-in completion handler with the results
+        completion(requests)
+    }
+    // The function naturally returns Void here
+}
+
+func deletePendingNotification(identifier: String) {
+    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    print("Removed pending notification with identifier: \(identifier)")
+}
+
 func requestPushPermission() async {
     // Request Permission for Push Notifications
     Task {
