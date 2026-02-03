@@ -18,6 +18,7 @@ struct ListView: View {
     @State private var selectedMinute: Int = 30
     @State private var reminderTitle: String = ""
     @State private var reminderBody: String = ""
+//    @State private var notificationList: [UNNotificationRequest] = []
     
     var body: some View {
         NavigationStack {
@@ -27,7 +28,9 @@ struct ListView: View {
             }
             .task {
                 await requestPushPermission()
-                listRepeatingNotifications()
+//                fetchPendingNotificationRequests { requests in
+//                    notificationList = requests
+//                }
             }
             
             GeometryReader { geometry in
@@ -105,31 +108,6 @@ struct ListView: View {
                             
                             reminderTitle = ""
                             reminderBody = ""
-                            
-//                            USING URL
-//                            if let url = URL(string: "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/person.png") {
-//                                let pathExtension = url.pathExtension
-//                                let task = URLSession.shared.downloadTask(with: url) { (result, response, error) in
-//                                    if let result = result {
-//
-//                                        let identifier = ProcessInfo.processInfo.globallyUniqueString
-//                                        let target = FileManager.default.temporaryDirectory.appendingPathComponent(identifier).appendingPathExtension(pathExtension)
-//
-//                                        do {
-//                                            try FileManager.default.moveItem(at: result, to: target)
-//
-//                                            let attachment = try UNNotificationAttachment(identifier: identifier, url: target, options: nil)
-//                                            maybe.append(attachment)
-//                                            content.attachments = maybe
-//                                            print("2")
-//                                        }
-//                                        catch {
-//                                            print(error.localizedDescription)
-//                                        }
-//                                    }
-//                                }
-//                                task.resume()
-//                            }
                         }
                     }
                     VStack {
@@ -155,6 +133,15 @@ struct ListView: View {
                             .padding(EdgeInsets(top: -geometry.size.width/32, leading: 0, bottom: 0, trailing: 0))
                     }
                     Spacer()
+                    NavigationLink(destination: DeleteReminderPage()) {
+                        HStack {
+                            Image(systemName: "minus")
+                            Text("Delete Reminder")
+                        }
+                        .font(.title2)
+                    }
+                    .buttonStyle(.bordered)
+                    .padding()
                     Button("Clear Notifications") {
                         clearAllPendingLocalNotifications()
                     }

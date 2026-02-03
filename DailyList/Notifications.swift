@@ -67,6 +67,8 @@ func clearAllPendingLocalNotifications() {
 }
 
 func listRepeatingNotifications() {
+    
+    print("what")
     UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
         print("--- Repeating Notifications ---")
         for request in requests {
@@ -85,6 +87,47 @@ func listRepeatingNotifications() {
         }
         print("-----------------------------")
     }
+}
+
+func listAllPendingNotifications() {
+    let center = UNUserNotificationCenter.current()
+    center.getPendingNotificationRequests { requests in
+        DispatchQueue.main.async {
+            print("Total pending notifications: \(requests.count)")
+            for request in requests {
+                print("--- Notification Request ---")
+                print("Identifier: \(request.identifier)")
+                print("Title: \(request.content.title)")
+                print("Body: \(request.content.body)")
+                
+                if let trigger = request.trigger as? UNCalendarNotificationTrigger {
+                    print("Trigger type: Calendar")
+                    print("Next trigger date: \(trigger.nextTriggerDate()?.description ?? "N/A")")
+                } else if let trigger = request.trigger as? UNTimeIntervalNotificationTrigger {
+                    print("Trigger type: Time Interval")
+                    print("Time interval: \(trigger.timeInterval) seconds")
+                } else if request.trigger is UNLocationNotificationTrigger {
+                    print("Trigger type: Location")
+                } else {
+                    print("Trigger type: Unknown/None")
+                }
+            }
+        }
+    }
+}
+
+func fetchPendingNotificationRequests(completion: @escaping ([UNNotificationRequest]) -> Void) {
+    let center = UNUserNotificationCenter.current()
+    center.getPendingNotificationRequests { requests in
+        // Call the passed-in completion handler with the results
+        completion(requests)
+    }
+    // The function naturally returns Void here
+}
+
+func deletePendingNotification(identifier: String) {
+    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [identifier])
+    print("Removed pending notification with identifier: \(identifier)")
 }
 
 func requestPushPermission() async {
