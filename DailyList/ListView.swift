@@ -75,6 +75,7 @@ struct ListView: View {
                             content.title = reminderTitle
                             content.subtitle = reminderBody
                             content.sound = UNNotificationSound.default
+                            content.interruptionLevel = .critical
                             
                             var dateComponents = DateComponents()
                             dateComponents.hour = selectedHour
